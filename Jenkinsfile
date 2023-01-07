@@ -4,13 +4,22 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Building..'
-		
-            }
+              echo '=== Building Petclinic Docker Image ==='
+              script {
+                  sh 'git pull origin master'
+                  app = docker.build("romanutskyi/petclinic-app")
+                  }
+              }
         }
-        stage('Test') {
+        stage('Push') {
             steps {
-                echo 'Testing..'
+            echo '=== Pushing Petclinic Docker Image To DockerHub Registry==='
+              script {
+                  docker.withRegistry('https://registry.hub.docker.com', '${DOCKER_CREDS}') {
+                      app.push("$BUILD_NUMBER")
+                      app.push("latest")
+                      }
+              }
             }
         }
         stage('Deploy') {
